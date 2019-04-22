@@ -4,40 +4,28 @@ from django.template import loader
 from django.shortcuts import render,get_object_or_404
 from django.http import Http404
 from django.urls import reverse
+from django.views import generic
 # Create your views here.
 from .models import Question
 
-def index(request):
-    latest_question_list = Question.objects.order_by('-pub_date')[:5]
-    template = loader.get_template('polls/index.html')
-    context = {
-        'latest_question_list': latest_question_list,
-    }
-    return HttpResponse(template.render(context,request))
-    #It’s a very common idiom to load a template, fill a context and return an HttpResponse object with the result of the rendered template.
-    # Django provides a shortcut as
-    # return render(request, 'polls/index.html', context)
 
-def spiderman(request):
-    return HttpResponse("Spiderman does whatever a spider can")
+class IndexView(generic.ListView):
+    template_name = 'polls/index.html'
+    context_object_name = 'latest_question_list'
 
-def ironmman(request):
-    return HttpResponse("Physics bends to my will")
-
-def antman(request):
-    return HttpResponse("Is afraid of the r/dankmemes")
-
-def endingtrail(request):
-    return HttpResponse("ending trail makes all the difference")
-
-def detail(request,question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, 'polls/detail.html', {'question': question})
+    def get_queryset(self):
+        """Return the last five published questions."""
+        return Question.objects.order_by('-pub_date')[:5]
 
 
-def results(request,question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, 'polls/results.html', {'question': question})
+class DetailView(generic.DetailView):
+    model = Question
+    template_name = 'polls/detail.html'
+
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = 'polls/results.html'
 
 def vote(request,question_id):
     question = get_object_or_404(Question,pk=question_id)
